@@ -11,26 +11,80 @@ mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
 --- .class #id 
 
-## Slide 1
+## Data Used
 
-- The data
+```{r loadlibs,echo=FALSE, results="hide"}
+library(knitr)
+library(reshape2)
+library(RCurl)
+```
+
+- Source of data:  Center for Higher Education Transformation
+- South African Higher Education Open Data Set
+- Available at: http://chet.org.za/data/sahe-open-data
+- Data was transformed to CSV and hosted on google docs for the app to read it directly from global.R
+```{r readdata}
+url <- "https://docs.google.com/spreadsheets/d/14EbD832LcfKEI2y4QIEJq8mvmkiVtFWNNPF3AEJap0Q/pub?output=csv"
+urlData <- getURLContent(url)
+cname <- read.table (textConnection(urlData), sep = ',', skip = 7, 
+                     nrow = 1, stringsAsFactors = FALSE)
+```
+
+``` {r transformdata,echo=FALSE,results="hide"}
+cname[1] <- "univ"
+cname[2] <- "race"
+cname[3:15] <- as.character(cname[3:15])
+unidata <- read.table (textConnection(urlData), sep = ',', 
+                       strip.white = TRUE, skip = 8, 
+                       col.names = cname[1,], 
+                       check.names = FALSE, 
+                       stringsAsFactors = FALSE)
+unidata <- unidata [1:nrow(unidata)-1,]   # Drop the last row which is an end of file marker
+unidata[,1] <- as.factor(unidata[,1])
+unidata[,2] <- as.factor(unidata[,2])
+for (i in 3:15) {
+  unidata[,i] <- as.integer(gsub("%","",unidata[,i]))
+}
+unidata <- melt(unidata,id.vars=c("univ","race"),measure.vars=cname[3:15], variable.name ="year", value.name ="perc")
+```
+--- .class #id 
+
+## User Interface
+
+- ui.R provides selectors for two types of graphs:
+- A year (selected from a drop-down) and one or more university names (abbreviated) for a comparison between those universities for a given year
+- A single university name selected from a drop-down to view the enrollment trends over the period of the dataset
+- The ui creates a tabset panel with the plots on one and instructions about the app on another 
+- Plots are generated in the server app and displayed as soon as data selections are changed
 
 --- .class #id 
 
-## Slide 2
+## Server App
 
-- The UI
+- The server app uses the selected data to subset the data, .e.g
+```{r selectdata}
+inputunis <- c("UP","UJ","WSU")
+inputyear <- "2012"
+thedata <- unidata[unidata$univ %in% inputunis,]
+thedata <- thedata[thedata$year == inputyear,]
+```
+- Rcharts  library is used to generate the charts as illustrated on next slide
 
 --- .class #id 
 
-## Slide 3
+## Generating Plots
 
-- The Server (and global)
-
---- .class #id 
-
-## Slide 4
-
-- The output
-
-
+- Example code for comparative chart
+```{r chart}
+library (knitr)
+library (rCharts)
+library (markdown)
+options(RCHART_LIB = 'polycharts')
+r1 <- rPlot(perc ~ univ, color = 'race', data = thedata, type = 'bar')
+r1$guides(x = list(title = "Universities"))
+r1$guides(y = list(title = "Percentage enrollment"))
+r1$addParams(height = 300, 
+               dom = 'chart1', 
+               title = paste("Percentage of Enrollment By Race Group",inputyear))
+r1
+```

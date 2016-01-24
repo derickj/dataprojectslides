@@ -43,11 +43,37 @@
     <!-- SLIDES -->
     <slide class="class" id="id" style="background:;">
   <hgroup>
-    <h2>Slide 1</h2>
+    <h2>Data Used</h2>
   </hgroup>
   <article data-timings="">
     <ul>
-<li>The data</li>
+<li>Source of data:  Center for Higher Education Transformation</li>
+<li>South African Higher Education Open Data Set</li>
+<li>Available at: <a href="http://chet.org.za/data/sahe-open-data">http://chet.org.za/data/sahe-open-data</a></li>
+<li>Data was transformed to CSV and hosted on google docs for the app to read it directly from global.R</li>
+</ul>
+
+<pre><code class="r">url &lt;- &quot;https://docs.google.com/spreadsheets/d/14EbD832LcfKEI2y4QIEJq8mvmkiVtFWNNPF3AEJap0Q/pub?output=csv&quot;
+urlData &lt;- getURLContent(url)
+cname &lt;- read.table (textConnection(urlData), sep = &#39;,&#39;, skip = 7, 
+                     nrow = 1, stringsAsFactors = FALSE)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>User Interface</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>ui.R provides selectors for two types of graphs:</li>
+<li>A year (selected from a drop-down) and one or more university names (abbreviated) for a comparison between those universities for a given year</li>
+<li>A single university name selected from a drop-down to view the enrollment trends over the period of the dataset</li>
+<li>The ui creates a tabset panel with the plots on one and instructions about the app on another </li>
+<li>Plots are generated in the server app and displayed as soon as data selections are changed</li>
 </ul>
 
   </article>
@@ -56,11 +82,21 @@
 
 <slide class="class" id="id" style="background:;">
   <hgroup>
-    <h2>Slide 2</h2>
+    <h2>Server App</h2>
   </hgroup>
   <article data-timings="">
     <ul>
-<li>The UI</li>
+<li>The server app uses the selected data to subset the data, .e.g</li>
+</ul>
+
+<pre><code class="r">inputunis &lt;- c(&quot;UP&quot;,&quot;UJ&quot;,&quot;WSU&quot;)
+inputyear &lt;- &quot;2012&quot;
+thedata &lt;- unidata[unidata$univ %in% inputunis,]
+thedata &lt;- thedata[thedata$year == inputyear,]
+</code></pre>
+
+<ul>
+<li>Rcharts  library is used to generate the charts as illustrated on next slide</li>
 </ul>
 
   </article>
@@ -69,25 +105,28 @@
 
 <slide class="class" id="id" style="background:;">
   <hgroup>
-    <h2>Slide 3</h2>
+    <h2>Generating Plots</h2>
   </hgroup>
   <article data-timings="">
     <ul>
-<li>The Server (and global)</li>
+<li>Example code for comparative chart</li>
 </ul>
 
-  </article>
-  <!-- Presenter Notes -->
-</slide>
+<pre><code class="r">library (knitr)
+library (rCharts)
+library (markdown)
+options(RCHART_LIB = &#39;polycharts&#39;)
+r1 &lt;- rPlot(perc ~ univ, color = &#39;race&#39;, data = thedata, type = &#39;bar&#39;)
+r1$guides(x = list(title = &quot;Universities&quot;))
+r1$guides(y = list(title = &quot;Percentage enrollment&quot;))
+r1$addParams(height = 300, 
+               dom = &#39;chart1&#39;, 
+               title = paste(&quot;Percentage of Enrollment By Race Group&quot;,inputyear))
+r1
+</code></pre>
 
-<slide class="class" id="id" style="background:;">
-  <hgroup>
-    <h2>Slide 4</h2>
-  </hgroup>
-  <article data-timings="">
-    <ul>
-<li>The output</li>
-</ul>
+<pre><code>## &lt;iframe src=&#39; assets/fig/chart-1.html &#39; scrolling=&#39;no&#39; frameBorder=&#39;0&#39; seamless class=&#39;rChart polycharts &#39; id=iframe- chart1 &gt;&lt;/iframe&gt; &lt;style&gt;iframe.rChart{ width: 100%; height: 400px;}&lt;/style&gt;
+</code></pre>
 
   </article>
   <!-- Presenter Notes -->
@@ -99,25 +138,25 @@
     <ul>
       <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=1 title='Slide 1'>
+        data-slide=1 title='Data Used'>
          1
       </a>
     </li>
     <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=2 title='Slide 2'>
+        data-slide=2 title='User Interface'>
          2
       </a>
     </li>
     <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=3 title='Slide 3'>
+        data-slide=3 title='Server App'>
          3
       </a>
     </li>
     <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=4 title='Slide 4'>
+        data-slide=4 title='Generating Plots'>
          4
       </a>
     </li>
