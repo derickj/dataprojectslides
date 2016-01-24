@@ -37,6 +37,7 @@ cname <- read.table (textConnection(urlData), sep = ',', skip = 7,
 - A single university name selected from a drop-down to view the enrollment trends over the period of the dataset
 - The ui creates a tabset panel with the plots on one and instructions about the app on another 
 - Plots are generated in the server app and displayed as soon as data selections are changed
+- github repo: https://github.com/derickj/dataprojects/tree/gh-pages
 
 --- .class #id 
 
@@ -51,6 +52,8 @@ thedata <- unidata[unidata$univ %in% inputunis,]
 thedata <- thedata[thedata$year == inputyear,]
 ```
 - Rcharts  library is used to generate the charts as illustrated on next slide
+
+- The app is hosted at: https://derickj.shinyapps.io/dataprojects/
 
 --- .class #id 
 
